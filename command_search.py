@@ -1,102 +1,80 @@
 #command_search.py: Matches Makefile command formats.
 
-#Imports the regular expressions module.
+#Imports necessary modules.
 import re
+import os
+import sys
 
-#Creates a list of lists containing all the file's contents.
-def create_file_list(f):
+#Goes through the input line-by-line and determines
+#if there are specific commands that match specified
+#regular expressions, i.e. comment_regex, label_regex, etc.
+def process_input_file(f_name):
 
-    #Initializes the variable.
-    file_contents = []
+    #Opens the input file.
+    in_file = open(f_name, "r")
 
-    #Iterates through the input file.
-    for line in f:
+    #Iterates through the file line-by-line.
+    for line in in_file:
+        
+        #Removes unecessary characters such as newlines.
+        line = line.strip()
 
-        #Splits each word in the line and creates a list.
-        line_list = line.split()
+        #Prints the line.
+        print line
 
-        #Determines if a created list is not empty.
-        if line_list != []:
+        #Captures input with regular expressions and, if necessary,
+        #removes the actual command to retrieve the desired input.
+        comment_regex = re.findall("#.*", line)
+        comment_regex = [c.replace("# ", "") for c in comment_regex]
+        label_regex = re.findall(".*:", line)
+        echo_regex = re.findall("echo.*", line)
+        echo_regex = [e.replace("echo ", "") for e in echo_regex]
+        #More regular expressions for other commands can be specified here.
 
-            #If so, add the created list to the file_contents list.
-            file_contents.append(line_list)
+        #Determines if comment_regex is not an empty list.
+        if comment_regex != []:
 
-        #If the list is empty, ignore it.
-        else:
-            pass
-
-    #Returns the final list of lists.
-    return file_contents
-
-#Sections each line from the file into a list.
-def decipher_contents(f_contents):
-
-    #Iterate through the list of lists,
-    #looking at one list at a time.
-    for lst in contents:
-
-        #Prints the current list.
-        print "List:"
-        print lst
-        print ""
-
-        #Further analyzes the contents for
-        #commands and arguments for those commands.
-        analyze_content_list(lst)
-
-#Analyzes the line to match commands and their respective arguments.
-def analyze_content_list(l):
-
-    #Iterates through each input list.
-    for entry in l:
-
-        #Determines if the first element of a list
-        #is the make command.
-        #Currently need to match flags (i.e. "-C") after "make".
-        if l[0] == "make":
-            
-            #If so, print the file paths captured
-            #by the regular expression.
-            print "make regular expressions:"
-            print re.findall("/.*", entry)
+            #If so, print the results.
+            print ""
+            print "Comment list:"
+            print comment_regex
             print ""
 
-        #If not, determine if the first element of a 
-        #list is #; this is to capture comments.
-        elif l[0] == "#":
+        #Determines if label_regex is not an empty list.
+        elif label_regex != []:
 
-            #If so, print the comment contents captured
-            #by the regular expression in a list.
-            print "comment regular expressions: "
-            print re.findall(".", entry)
-            print ["".join(re.findall(".", entry))]
+            #If so, print the results.
+            print ""
+            print "Label list:"
+            print label_regex
             print ""
 
-        #If not, determine if the list is a label, 
-        #captured by the regular expression.
-        elif l == re.findall(".*:", entry):
+        #Determines if echo_regex is not an empty list.
+        elif echo_regex != []:
 
-            #If so, print the contents of the label
-            #captured by the regular expression.
-            print "label regular expressions:"
-            print re.findall(".*:", entry)
+            #If so, print the results.
+            print ""
+            print "Echo list:"
+            print echo_regex
             print ""
 
-        #More elif statements can be added here to
-        #analyze other commands/operations such as
-        #rm, +=, $(), etc.
+        #Tests for other commands, like above, can be specified here.
+    
+    #Closes the input file.
+    in_file.close()
 
-#Prompts the user for the file path and the file name.
-file_name = raw_input("Please enter a path for the input file: ")
+#Retrieves a path to an input file from the command line.
+file_name = sys.argv[1]
 
-#Opens the specified file.
-input_file = open(file_name, "r")
+#Determines if the input file exists in the given path.
+if os.path.exists(file_name):
 
-#Stores each line of the input file in a list of lists.
-contents = create_file_list(input_file)
+    #Prints a status message showing what file is processing.
+    print "Processing " + os.path.basename(file_name) + " located at " + file_name + "..."
 
-#Closes the input file.
-input_file.close()
+    #Calls process_input_file.
+    process_input_file(file_name)
 
-#Analyzes the list of lists to print command formats.
-decipher_contents(contents)
+#If the file does not exist in the given path, print an error.
+else:
+    print "The input file does not exist. Please try again."
